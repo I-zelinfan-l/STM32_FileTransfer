@@ -32,7 +32,9 @@ char CurPath[256];   //当前路径
   
 BYTE file_read_buffer[5000];  //读取文件内容数组
 
-BYTE cur_page_read_buffer[FILE_PAGE_MAX_BTYE];
+char cur_page_read_buffer[FILE_PAGE_MAX_BTYE];
+uint16_t  File_Pages[MAX_NUM_PAGE];
+uint8_t  Total_Txt_Pages;
 
 int8_t num_read_page = 0; // 文件内容的页数
 int8_t file_num_read_page = 0; // 文件的页数
@@ -57,7 +59,7 @@ static void File_Disable(void);
 // 注：下一页始终使能
 //static void NextPage_Button_Enable(void); // 使能下一页功能选择
 //static void NextPage_Button_Disable(void); // 失能下一页功能选择
-
+static void File_Page_Init(void); //初始化文件内容每一页页数
 
 
 /******************************************************************/
@@ -377,6 +379,7 @@ static void Command_Select_Function(void *btn){
 */
 
 static void Command_Select_NextPage(void *btn) {
+	  uint16_t num=0,i;
     if (cur_env == 1) { //文件内部
         LCD_SetBackColor(CL_WHITE);
         LCD_SetTextColor(BLACK);
@@ -384,13 +387,15 @@ static void Command_Select_NextPage(void *btn) {
         
         // 清屏
         
-        num_read_page = (num_read_page + 1) % MAX_NUM_PAGE; 
+       num_read_page = (num_read_page + 1) % (Total_Txt_Pages); 
         //页数加一，如果已经到了最后一页，那么下一页就是第一页
-        
+        for(i =0;i<num_read_page;i++){
+					num+=File_Pages[i];
+				}
+				memset(cur_page_read_buffer,'\0',sizeof(cur_page_read_buffer));
         strncpy((char*)cur_page_read_buffer, 
-                (char*)file_read_buffer + num_read_page * FILE_PAGE_MAX_BTYE, 
-                FILE_PAGE_MAX_BTYE);
-		// 截取需要显示页的数据
+                (char*)file_read_buffer + num, 
+                File_Pages[num_read_page]);
                 
 		ILI9341_DispString_EN_CH_Custom(0, 0, LCD_X_LENGTH,
                                         LCD_Y_LENGTH - FUNCTION_BLOCK_HEIGHT,
@@ -417,7 +422,7 @@ static void Command_Select_NextPage(void *btn) {
 */
 
 static void Command_Select_PrePage(void *btn) { 
-     
+     uint16_t num=0,i;
      if (cur_env == 1) { //文件内部
          
          LCD_SetBackColor(CL_WHITE);
@@ -425,16 +430,18 @@ static void Command_Select_PrePage(void *btn) {
          ILI9341_Clear (0,0, LCD_X_LENGTH, LCD_Y_LENGTH); 
          // 清屏
          
-         if (num_read_page > 0 ) {
+          if (num_read_page > 0 ) {
             num_read_page = num_read_page - 1;
          }
-         
+          for(i =0;i<num_read_page;i++){
+					num+=File_Pages[i];
+				}
          
          //页数减一
-        
+        memset(cur_page_read_buffer,'\0',sizeof(cur_page_read_buffer));
          strncpy((char*)cur_page_read_buffer, 
-                 (char*)file_read_buffer + num_read_page * FILE_PAGE_MAX_BTYE, 
-                 FILE_PAGE_MAX_BTYE);
+                 (char*)file_read_buffer +num, 
+                 File_Pages[num_read_page]);
 		 // 截取需要显示页的数据
                 
 		 ILI9341_DispString_EN_CH_Custom(0, 0, LCD_X_LENGTH,
@@ -652,13 +659,17 @@ static void Open_File(char *path){
 		res=f_open(&fil,file_path,FA_OPEN_EXISTING | FA_READ);
 		if(res==FR_OK){
 			res=f_read(&fil,file_read_buffer,sizeof(file_read_buffer),&fnumber);
+			
+      File_Page_Init();
             //将读取到的文件内容的前FILE_PAGE_MAX_BTYE个字节复制给当前页面缓存字符串
-            strncpy((char*)cur_page_read_buffer, 
-                    (char*)file_read_buffer + num_read_page * FILE_PAGE_MAX_BTYE, 
-                    FILE_PAGE_MAX_BTYE);
+			memset(cur_page_read_buffer,'\0',sizeof(cur_page_read_buffer));
+      strncpy((char*)cur_page_read_buffer, 
+                    (char*)file_read_buffer , File_Pages[0]
+                     );
+										 
 			if(res==FR_OK){ 
 				ILI9341_DispString_EN_CH_Custom(0, 0, LCD_X_LENGTH,
-                                                LCD_Y_LENGTH-FUNCTION_BLOCK_HEIGHT,
+                                                LCD_Y_LENGTH - FUNCTION_BLOCK_HEIGHT,
                                                 (char *)cur_page_read_buffer);
 			}
 		}
@@ -725,7 +736,7 @@ void  USARTx_ReceiveFile(void){
 		res=f_open(&fil,File_Receive_Name,FA_OPEN_EXISTING|FA_WRITE);
        
         
-        if(strlen((char *)ReceiveBuff)< sizeof(ReceiveBuff)){
+    if(strlen((char *)ReceiveBuff)< sizeof(ReceiveBuff)){
 			total_num=strlen((char *)ReceiveBuff);
 		}
 		else{
@@ -858,34 +869,6 @@ static uint16_t  Last_Slash(char *path){
 	return index;
 }
 
-void test(void){
-	FRESULT res_sd;
-	BYTE ReadBuffer[256]={0};
-	//printf("****** 即将进行文件读取测试... ******\r\n");
-	res_sd = f_open(&fil, File_Receive_Name, FA_OPEN_EXISTING | FA_READ); 	 
-	if(res_sd == FR_OK)
-	{
-		//printf("》打开文件成功。\r\n");
-		res_sd = f_read(&fil, ReadBuffer, sizeof(ReadBuffer), &fnumber); 
-    if(res_sd==FR_OK)
-    {
-      //printf("》文件读取成功,读到字节数据：%d\r\n",fnumber);
-      //printf("》读取得的文件数据为：\r\n%s \r\n", ReadBuffer);	
-    }
-    else
-    {
-      //printf("！！文件读取失败：(%d)\n",res_sd);
-    }		
-	}
-	else
-	{
-	 
-		//printf("！！打开文件失败。\r\n");
-	}
-	/* 不再读写，关闭文件 */
-	f_close(&fil);	
-  
-}
 
 static void File_Disable(void) {
      uint8_t i;
@@ -897,3 +880,53 @@ static void File_Disable(void) {
         }
      }
 }
+
+/**
+* @brief  初始化文件内容每一页的页数数量
+* @param  无
+* @retval 无
+*/
+static void File_Page_Init(void){
+	uint16_t count=0,cur_page=0;
+	char *pStr=(char *)file_read_buffer;
+	Total_Txt_Pages=0;
+	num_read_page=0;
+	 while(*pStr!='\0'){
+		 if(*pStr<=126){
+			 count++;
+			 pStr++;
+			 if(count==FILE_PAGE_MAX_BTYE-1){
+				 File_Pages[cur_page]=count;
+				 count=0;
+				 cur_page++;
+				 Total_Txt_Pages++;
+				  
+			 }
+			  
+		 }
+		 else{
+			 count+=2;
+			 pStr+=2;
+			 if(count>=FILE_PAGE_MAX_BTYE-1){
+				 File_Pages[cur_page]=count;
+				 count=0;
+				 cur_page++;
+				 Total_Txt_Pages++;
+				  
+			 }
+			  
+		 }
+		 if(cur_page>=MAX_NUM_PAGE){
+			 Total_Txt_Pages--;
+			 return;
+		 }
+	 }
+	 if(count!=0){
+		 File_Pages[cur_page]=count;
+		 Total_Txt_Pages++;
+	 }
+//	 for(count=0;count<Total_Txt_Pages;count++){
+//		 printf("%d\n",File_Pages[count]);
+//	 }
+}
+

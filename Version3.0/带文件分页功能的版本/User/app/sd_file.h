@@ -45,7 +45,7 @@
 
 #define FILE_NAME_LENGTH      255    //文件名的最长长度
 
-#define FILE_PAGE_MAX_BTYE    250   //文件的一页最多显示字节数量
+#define FILE_PAGE_MAX_BTYE    255   //文件的一页最多显示字节数量
 #define MAX_NUM_PAGE 8              // 一个文件下最多有8页
 
 #if LCD_RGB_888
