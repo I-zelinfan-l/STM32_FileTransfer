@@ -7,10 +7,10 @@ extern uint8_t ReceiveBuff[RECEIVEBUFF_SIZE];
 extern uint8_t SendBuff[SENDBUFF_SIZE];
 
 uint8_t write_flag=0;
-char File_Receive_Name[200];  //ÎÄ¼şÃû
+char File_Receive_Name[200];  //æ–‡ä»¶å
 void test(void);
 
-//ÎÄ¼şÏµÍ³Ïà¹Ø±äÁ¿
+//æ–‡ä»¶ç³»ç»Ÿç›¸å…³å˜é‡
 FRESULT res;
 DIR dir;
 FILINFO  fno;
@@ -21,33 +21,33 @@ uint16_t  file_num;
 
 CUR_FILE  Cur_File;
 
-uint16_t   NestDepth=0;  //ÎÄ¼ş¼ĞÇ¶Ì×Éî¶È
+uint16_t   NestDepth=0;  //æ–‡ä»¶å¤¹åµŒå¥—æ·±åº¦
 
-uint8_t   cur_env=0;    //µ±Ç°Ëù´¦»·¾³ÊÇÎÄ¼ş¼Ğ»¹ÊÇÎÄ¼şÄÚ²¿
+uint8_t   cur_env=0;    //å½“å‰æ‰€å¤„ç¯å¢ƒæ˜¯æ–‡ä»¶å¤¹è¿˜æ˜¯æ–‡ä»¶å†…éƒ¨
 
-Touch_Button  button[BUTTON_NUM];   //°´¼üÊı×é
-char File_Name[BUTTON_NUM][FILE_NAME_LENGTH];  //ÎÄ¼şÃûÊı×é
-uint8_t  IS_DIR[BUTTON_NUM];  //ÊÇ·ñÊÇÎÄ¼ş¼ĞÊı×é
-char CurPath[256];   //µ±Ç°Â·¾¶
+Touch_Button  button[BUTTON_NUM];   //æŒ‰é”®æ•°ç»„
+char File_Name[BUTTON_NUM][FILE_NAME_LENGTH];  //æ–‡ä»¶åæ•°ç»„
+uint8_t  IS_DIR[BUTTON_NUM];  //æ˜¯å¦æ˜¯æ–‡ä»¶å¤¹æ•°ç»„
+char CurPath[256];   //å½“å‰è·¯å¾„
   
-BYTE file_read_buffer[5000];  //¶ÁÈ¡ÎÄ¼şÄÚÈİÊı×é
+BYTE file_read_buffer[5000];  //è¯»å–æ–‡ä»¶å†…å®¹æ•°ç»„
 
 char cur_page_read_buffer[FILE_PAGE_MAX_BTYE];
 uint16_t  File_Pages[MAX_NUM_PAGE];
 uint8_t  Total_Txt_Pages;
 
-int8_t num_read_page = 0; // ÎÄ¼şÄÚÈİµÄÒ³Êı
-int8_t file_num_read_page = 0; // ÎÄ¼şµÄÒ³Êı
+int8_t num_read_page = 0; // æ–‡ä»¶å†…å®¹çš„é¡µæ•°
+int8_t file_num_read_page = 0; // æ–‡ä»¶çš„é¡µæ•°
 /****************************************************************/
 static void Draw_File_Button(void *btn);     
 static void Draw_Function_Button(void *btn); 
-static void Draw_NextPage_Button(void *btn); // »æÖÆÏÂÒ»Ò³°´¼ü 
-static void Draw_PrePage_Button(void *btn); // »æÖÆÏÂÒ»Ò³°´¼ü 
+static void Draw_NextPage_Button(void *btn); // ç»˜åˆ¶ä¸‹ä¸€é¡µæŒ‰é”® 
+static void Draw_PrePage_Button(void *btn); // ç»˜åˆ¶ä¸‹ä¸€é¡µæŒ‰é”® 
 
 static void Command_Select_File(void *btn);
 static void Command_Select_Function(void *btn);
-static void Command_Select_NextPage(void *btn); //ÏÂÒ»Ò³¹¦ÄÜÑ¡Ôñ
-static void Command_Select_PrePage(void *btn); //ÉÏÒ»Ò³¹¦ÄÜÑ¡Ôñ
+static void Command_Select_NextPage(void *btn); //ä¸‹ä¸€é¡µåŠŸèƒ½é€‰æ‹©
+static void Command_Select_PrePage(void *btn); //ä¸Šä¸€é¡µåŠŸèƒ½é€‰æ‹©
 
 static void File_Button_Disable(void);
 //static void File_Button_Enable(void);
@@ -55,23 +55,23 @@ static void File_Button_Disable(void);
 static void Fuction_Button_Enable(void);
 
 static void File_Disable(void);
-// Ê¹ÄÜ/Ê§ÄÜÏÂÒ»Ò³¹¦ÄÜÔÚ Function_Button_Dis/EnableÖĞÊµÏÖ
-// ×¢£ºÏÂÒ»Ò³Ê¼ÖÕÊ¹ÄÜ
-//static void NextPage_Button_Enable(void); // Ê¹ÄÜÏÂÒ»Ò³¹¦ÄÜÑ¡Ôñ
-//static void NextPage_Button_Disable(void); // Ê§ÄÜÏÂÒ»Ò³¹¦ÄÜÑ¡Ôñ
-static void File_Page_Init(void); //³õÊ¼»¯ÎÄ¼şÄÚÈİÃ¿Ò»Ò³Ò³Êı
+// ä½¿èƒ½/å¤±èƒ½ä¸‹ä¸€é¡µåŠŸèƒ½åœ¨ Function_Button_Dis/Enableä¸­å®ç°
+// æ³¨ï¼šä¸‹ä¸€é¡µå§‹ç»ˆä½¿èƒ½
+//static void NextPage_Button_Enable(void); // ä½¿èƒ½ä¸‹ä¸€é¡µåŠŸèƒ½é€‰æ‹©
+//static void NextPage_Button_Disable(void); // å¤±èƒ½ä¸‹ä¸€é¡µåŠŸèƒ½é€‰æ‹©
+static void File_Page_Init(void); //åˆå§‹åŒ–æ–‡ä»¶å†…å®¹æ¯ä¸€é¡µé¡µæ•°
 
 
 /******************************************************************/
 
 static void Open_File(char *path);
 
-static uint16_t  Last_Slash(char *path);   //×îºóÒ»¸ö/µÄÎ»ÖÃ
+static uint16_t  Last_Slash(char *path);   //æœ€åä¸€ä¸ª/çš„ä½ç½®
 
 /**
-* @brief  Touch_Button_Init ³õÊ¼»¯°´Å¥²ÎÊı
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  Touch_Button_Init åˆå§‹åŒ–æŒ‰é’®å‚æ•°
+* @param  æ— 
+* @retval æ— 
 */
 void Touch_Button_Init(void){
 	uint16_t  i;
@@ -81,16 +81,16 @@ void Touch_Button_Init(void){
     uint8_t start_position = FUNCTION_BUTTON_NUM + file_num_read_page * NUM_FILE_ONE_PAGE;
     uint8_t end_position = FUNCTION_BUTTON_NUM + (file_num_read_page + 1) * NUM_FILE_ONE_PAGE;
     
-	//´«Êä¹¦ÄÜÓë´ò¿ªÎÄ¼ş»òÄ¿Â¼¹¦ÄÜÓÃ°´¼üÀ´ÊµÏÖ
-	//µÚÒ»¸ö°´Å¥Îª¹Ì¶¨°´Å¥£¬²»ËæÎÄ¼şµÄ¸Ä¶¯¶ø±ä»¯
-	//¹¦ÄÜÎªÍË³öÎÄ¼şÏÔÊ¾£¬»ò·µ»ØÉÏ¼¶Ä¿Â¼
+	//ä¼ è¾“åŠŸèƒ½ä¸æ‰“å¼€æ–‡ä»¶æˆ–ç›®å½•åŠŸèƒ½ç”¨æŒ‰é”®æ¥å®ç°
+	//ç¬¬ä¸€ä¸ªæŒ‰é’®ä¸ºå›ºå®šæŒ‰é’®ï¼Œä¸éšæ–‡ä»¶çš„æ”¹åŠ¨è€Œå˜åŒ–
+	//åŠŸèƒ½ä¸ºé€€å‡ºæ–‡ä»¶æ˜¾ç¤ºï¼Œæˆ–è¿”å›ä¸Šçº§ç›®å½•
     button[0].start_x = FUNCTION_BUTTON_START_X;
     button[0].start_y = FUNCTION_BUTTON_START_Y;
     button[0].end_x = FUNCTION_BUTTON_START_X + FUNCTION_BLOCK_WIDTH ;
     button[0].end_y = FUNCTION_BUTTON_END_Y;
     button[0].para = CL_GREY;
 	if(NestDepth > 0){
-	     button[0].en=1;   // ÍË³ö°´¼üÊ¹ÄÜ
+	     button[0].en=1;   // é€€å‡ºæŒ‰é”®ä½¿èƒ½
 	}
 	else{
 		 button[0].en=0;
@@ -99,7 +99,7 @@ void Touch_Button_Init(void){
     button[0].draw_btn = Draw_Function_Button;
     button[0].btn_command = Command_Select_Function ; 
 
-    // 1ºÅ°´¼ü £º ÏÂÒ»Ò³
+    // 1å·æŒ‰é”® ï¼š ä¸‹ä¸€é¡µ
     button[1].start_x = FUNCTION_BUTTON_START_X + 2 * FUNCTION_BLOCK_WIDTH;
     button[1].start_y = FUNCTION_BUTTON_START_Y;
     button[1].end_x = FUNCTION_BUTTON_START_X + 3 * FUNCTION_BLOCK_WIDTH ;
@@ -109,9 +109,9 @@ void Touch_Button_Init(void){
     button[1].touch_flag = 0;  
     button[1].draw_btn = Draw_NextPage_Button;
     button[1].btn_command = Command_Select_NextPage ;  
-    // ½áÊø°´¼ü1¶¨Òå
+    // ç»“æŸæŒ‰é”®1å®šä¹‰
 
-    // 2ºÅ°´¼ü £º ÉÏÒ»Ò³
+    // 2å·æŒ‰é”® ï¼š ä¸Šä¸€é¡µ
     button[2].start_x = FUNCTION_BUTTON_START_X + FUNCTION_BLOCK_WIDTH;
     button[2].start_y = FUNCTION_BUTTON_START_Y;
     button[2].end_x = FUNCTION_BUTTON_START_X + 2 * FUNCTION_BLOCK_WIDTH ;
@@ -121,16 +121,16 @@ void Touch_Button_Init(void){
     button[2].touch_flag = 0;  
     button[2].draw_btn = Draw_PrePage_Button;
     button[2].btn_command = Command_Select_PrePage;  
-    // ½áÊø°´¼ü2¶¨Òå
+    // ç»“æŸæŒ‰é”®2å®šä¹‰
     
-	//ÎÄ¼şÏÔÊ¾Ä£¿é
-    File_Disable(); // disable ÎŞ¹ØÎÄ¼ş
+	//æ–‡ä»¶æ˜¾ç¤ºæ¨¡å—
+    File_Disable(); // disable æ— å…³æ–‡ä»¶
 	for(i = start_position; i < end_position; i++){
 		button[i].start_x = file_current_x;
         button[i].start_y = file_current_y;
         button[i].end_x = file_current_x+ FILE_BLOCK_WIDTH;
         button[i].end_y = file_current_y+FILE_BLOCK_HEIGHT;
-		if (IS_DIR[i-FUNCTION_BUTTON_NUM]) { //ÅĞ¶ÏÊÇ·ñÊÇÄ¿Â¼
+		if (IS_DIR[i-FUNCTION_BUTTON_NUM]) { //åˆ¤æ–­æ˜¯å¦æ˜¯ç›®å½•
 			button[i].para = CL_ORANGE;
 			button[i].is_dir=1;
 		} else {
@@ -143,7 +143,7 @@ void Touch_Button_Init(void){
         button[i].draw_btn = Draw_File_Button;
         button[i].btn_command = Command_Select_File;  
 		
-		//·ÀÖ¹Òç³ö
+		//é˜²æ­¢æº¢å‡º
 		file_current_x += FILE_BLOCK_WIDTH;
 		if (file_current_x >= FILE_BUTTON_END_X) {
 			file_current_x =FILE_BUTTON_START_X;
@@ -155,9 +155,9 @@ void Touch_Button_Init(void){
 }
 
 /**
-* @brief  Buttuon_Fresh  Ë¢ĞÂ°´Å¥£¬ÓëÎÄ¼şÏµÍ³±£³ÖÒ»ÖÂ
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  Buttuon_Fresh  åˆ·æ–°æŒ‰é’®ï¼Œä¸æ–‡ä»¶ç³»ç»Ÿä¿æŒä¸€è‡´
+* @param  æ— 
+* @retval æ— 
 */
 void Button_Fresh(char *path){
 	 uint8_t i;
@@ -168,7 +168,7 @@ void Button_Fresh(char *path){
 	
 	 Touch_Button_Init();
 	 
-     // Ë¢ĞÂÏÔÊ¾
+     // åˆ·æ–°æ˜¾ç¤º
 	 for (i = 0; i < FUNCTION_BUTTON_NUM + file_num; i++){
         if(button[i].en) {
             button[i].draw_btn(&button[i]);
@@ -188,14 +188,14 @@ void Button_Fresh(char *path){
 }
 
 /**
-* @brief  Draw_File_Button  Ãè»æÏÔÊ¾ÎÄ¼şµÄ°´Å¥ 
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  Draw_File_Button  æç»˜æ˜¾ç¤ºæ–‡ä»¶çš„æŒ‰é’® 
+* @param  æ— 
+* @retval æ— 
 */
 static void Draw_File_Button(void *btn){
 	Touch_Button *ptr = (Touch_Button *)btn;
 	uint32_t  temp_color;
-	 if(ptr->touch_flag==0){      //°´¼üÎ´±»Ñ¡ÖĞ
+	 if(ptr->touch_flag==0){      //æŒ‰é”®æœªè¢«é€‰ä¸­
 		 LCD_SetColors(ptr->para,CL_WHITE);
 		 temp_color=ptr->para;
      ILI9341_DrawRectangle(	ptr->start_x,
@@ -203,7 +203,7 @@ static void Draw_File_Button(void *btn){
 							ptr->end_x - ptr->start_x,
 							ptr->end_y - ptr->start_y,1);
 	 }
-	 else{    //°´¼ü±»Ñ¡ÖĞ
+	 else{    //æŒ‰é”®è¢«é€‰ä¸­
 		 LCD_SetColors(CL_WHITE,CL_WHITE);
 		 temp_color=CL_WHITE;
 		 ILI9341_DrawRectangle(	ptr->start_x,
@@ -212,12 +212,12 @@ static void Draw_File_Button(void *btn){
 															ptr->end_y - ptr->start_y,1);
 	 }
 	 
-	 //ÏÔÊ¾ÎÄ¼şÃû
+	 //æ˜¾ç¤ºæ–‡ä»¶å
 	 LCD_SetColors(CL_BLACK,temp_color);
 	 LCD_SetFont(&Font8x16);
 	 ILI9341_DispString_EN_CH_Custom(ptr->start_x,ptr->start_y,ptr->end_x,ptr->end_y,ptr->fname);
 	 
-	 //Ãè»æ±ß¿ò
+	 //æç»˜è¾¹æ¡†
      ILI9341_DrawRectangle(	ptr->start_x,
 															ptr->start_y,
 															ptr->end_x - ptr->start_x,
@@ -226,15 +226,15 @@ static void Draw_File_Button(void *btn){
 }
 
 /**
-* @brief  Draw_Function_Button  Ãè»æ·µ»Ø°´Å¥ 
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  Draw_Function_Button  æç»˜è¿”å›æŒ‰é’® 
+* @param  æ— 
+* @retval æ— 
 */
 static void Draw_Function_Button(void *btn){
 	uint32_t temp_color;
 	Touch_Button *ptr = (Touch_Button *)btn;
 	
-	 if(ptr->touch_flag==0){      //°´¼üÎ´±»Ñ¡ÖĞ
+	 if(ptr->touch_flag==0){      //æŒ‰é”®æœªè¢«é€‰ä¸­
 		 LCD_SetColors(ptr->para,CL_WHITE);
 		 temp_color=ptr->para;
         ILI9341_DrawRectangle(	ptr->start_x,
@@ -242,7 +242,7 @@ static void Draw_Function_Button(void *btn){
 															ptr->end_x - ptr->start_x,
 															ptr->end_y - ptr->start_y,1);
 	 }
-	 else{    //°´¼ü±»Ñ¡ÖĞ
+	 else{    //æŒ‰é”®è¢«é€‰ä¸­
 		 LCD_SetColors(CL_GREY3	,CL_WHITE);
 		 temp_color=CL_GREY3;
 		 ILI9341_DrawRectangle(	ptr->start_x,
@@ -251,14 +251,14 @@ static void Draw_Function_Button(void *btn){
 															ptr->end_y - ptr->start_y,1);
 	 }
 	 
-	 //ÏÔÊ¾¹¦ÄÜÃû
+	 //æ˜¾ç¤ºåŠŸèƒ½å
 	 LCD_SetColors(CL_RED,temp_color);
 	 LCD_SetFont(&Font8x16);
 	 ILI9341_DispString_EN_CH( ptr->start_x + (ptr->end_x - ptr->start_x - 16*2 )/2,                 
 							   ptr->start_y + ((ptr->end_y - ptr->start_y-16)/2),	
-							   "·µ»Ø");
+							   "è¿”å›");
 	 
-	 //Ãè»æ±ß¿ò
+	 //æç»˜è¾¹æ¡†
      ILI9341_DrawRectangle(	ptr->start_x,
 							ptr->start_y,
 							ptr->end_x - ptr->start_x,
@@ -266,22 +266,22 @@ static void Draw_Function_Button(void *btn){
 }
 
 /**
-* @brief  Draw_NextPage_Button  Ãè»æÑ¡ÔñÏÂÒ»Ò³µÄ°´Å¥ 
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  Draw_NextPage_Button  æç»˜é€‰æ‹©ä¸‹ä¸€é¡µçš„æŒ‰é’® 
+* @param  æ— 
+* @retval æ— 
 */
 static void Draw_NextPage_Button(void *btn) { 
     uint32_t temp_color;
 	Touch_Button *ptr = (Touch_Button *)btn;
    
-    if (ptr->touch_flag == 0) {      //°´¼üÎ´±»Ñ¡ÖĞ   
+    if (ptr->touch_flag == 0) {      //æŒ‰é”®æœªè¢«é€‰ä¸­   
 		LCD_SetColors(ptr->para,CL_WHITE);
 		temp_color=ptr->para;
         ILI9341_DrawRectangle(ptr->start_x, ptr->start_y,
                               ptr->end_x - ptr->start_x, 
                               ptr->end_y - ptr->start_y, 1);
 
-	} else {  // ÏÂÒ»Ò³°´¼ü±»Ñ¡ÖĞ   
+	} else {  // ä¸‹ä¸€é¡µæŒ‰é”®è¢«é€‰ä¸­   
         LCD_SetColors(CL_GREY3, CL_WHITE);
 		temp_color = CL_GREY3;
 		ILI9341_DrawRectangle(ptr->start_x, 
@@ -289,14 +289,14 @@ static void Draw_NextPage_Button(void *btn) {
 							  ptr->end_x - ptr->start_x,
 							  ptr->end_y - ptr->start_y, 1);
     }
-     //ÏÔÊ¾¹¦ÄÜÃû
+     //æ˜¾ç¤ºåŠŸèƒ½å
 	 LCD_SetColors(CL_RED,temp_color);
 	 LCD_SetFont(&Font8x16);
 	 ILI9341_DispString_EN_CH(ptr->start_x + (ptr->end_x - ptr->start_x - 16*2 ) / 2,                 
 							  ptr->start_y + ((ptr->end_y - ptr->start_y- 16) / 2),	
-							   "ÏÂÒ»Ò³");
+							   "ä¸‹ä¸€é¡µ");
 	 
-	 //Ãè»æ±ß¿ò
+	 //æç»˜è¾¹æ¡†
      ILI9341_DrawRectangle(	ptr->start_x,
 							ptr->start_y,
 							ptr->end_x - ptr->start_x,
@@ -305,22 +305,22 @@ static void Draw_NextPage_Button(void *btn) {
 }
 
 /**
-* @brief  Draw_PrePage_Button  Ãè»æÑ¡ÔñÉÏÒ»Ò³µÄ°´Å¥ 
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  Draw_PrePage_Button  æç»˜é€‰æ‹©ä¸Šä¸€é¡µçš„æŒ‰é’® 
+* @param  æ— 
+* @retval æ— 
 */
 static void Draw_PrePage_Button(void *btn) { 
     uint32_t temp_color;
 	Touch_Button *ptr = (Touch_Button *)btn;
    
-    if (ptr->touch_flag == 0) {      //°´¼üÎ´±»Ñ¡ÖĞ   
+    if (ptr->touch_flag == 0) {      //æŒ‰é”®æœªè¢«é€‰ä¸­   
 		LCD_SetColors(ptr->para,CL_WHITE);
 		temp_color=ptr->para;
         ILI9341_DrawRectangle(ptr->start_x, ptr->start_y,
                               ptr->end_x - ptr->start_x, 
                               ptr->end_y - ptr->start_y, 1);
 
-	} else {  // ÏÂÒ»Ò³°´¼ü±»Ñ¡ÖĞ   
+	} else {  // ä¸‹ä¸€é¡µæŒ‰é”®è¢«é€‰ä¸­   
         LCD_SetColors(CL_GREY3, CL_WHITE);
 		temp_color = CL_GREY3;
 		ILI9341_DrawRectangle(ptr->start_x, 
@@ -328,14 +328,14 @@ static void Draw_PrePage_Button(void *btn) {
 							  ptr->end_x - ptr->start_x,
 							  ptr->end_y - ptr->start_y, 1);
     }
-     //ÏÔÊ¾¹¦ÄÜÃû
+     //æ˜¾ç¤ºåŠŸèƒ½å
 	 LCD_SetColors(CL_RED,temp_color);
 	 LCD_SetFont(&Font8x16);
 	 ILI9341_DispString_EN_CH(ptr->start_x + (ptr->end_x - ptr->start_x - 16*2 ) / 2,                 
 							  ptr->start_y + ((ptr->end_y - ptr->start_y- 16) / 2),	
-							   "ÉÏÒ»Ò³");
+							   "ä¸Šä¸€é¡µ");
 	 
-	 //Ãè»æ±ß¿ò
+	 //æç»˜è¾¹æ¡†
      ILI9341_DrawRectangle(	ptr->start_x,
 							ptr->start_y,
 							ptr->end_x - ptr->start_x,
@@ -344,9 +344,9 @@ static void Draw_PrePage_Button(void *btn) {
 }
 
 /**
-* @brief  Command_Select_File   ÇĞ»»µ±Ç°Ñ¡ÖĞµÄÎÄ¼ş
-* @param   ÎŞ
-* @retval ÎŞ
+* @brief  Command_Select_File   åˆ‡æ¢å½“å‰é€‰ä¸­çš„æ–‡ä»¶
+* @param   æ— 
+* @retval æ— 
 */
 static void Command_Select_File(void *btn){
 	Touch_Button *ptr = (Touch_Button *)btn;
@@ -355,9 +355,9 @@ static void Command_Select_File(void *btn){
 }
 
 /**
-* @brief  Command_Select_Function   Ñ¡ÖĞ·µ»Ø¼ü
-* @param   ÎŞ
-* @retval ÎŞ
+* @brief  Command_Select_Function   é€‰ä¸­è¿”å›é”®
+* @param   æ— 
+* @retval æ— 
 */
 static void Command_Select_Function(void *btn){
 	uint16_t index;
@@ -373,22 +373,22 @@ static void Command_Select_Function(void *btn){
 }
 
 /**
-* @brief  Command_Select_NextPage   Ñ¡ÖĞÏÂÒ»Ò³¹¦ÄÜ¼ü
-* @param   ÎŞ
-* @retval ÎŞ
+* @brief  Command_Select_NextPage   é€‰ä¸­ä¸‹ä¸€é¡µåŠŸèƒ½é”®
+* @param   æ— 
+* @retval æ— 
 */
 
 static void Command_Select_NextPage(void *btn) {
 	  uint16_t num=0,i;
-    if (cur_env == 1) { //ÎÄ¼şÄÚ²¿
+    if (cur_env == 1) { //æ–‡ä»¶å†…éƒ¨
         LCD_SetBackColor(CL_WHITE);
         LCD_SetTextColor(BLACK);
         ILI9341_Clear (0,0, LCD_X_LENGTH, LCD_Y_LENGTH);
         
-        // ÇåÆÁ
+        // æ¸…å±
         
        num_read_page = (num_read_page + 1) % (Total_Txt_Pages); 
-        //Ò³Êı¼ÓÒ»£¬Èç¹ûÒÑ¾­µ½ÁË×îºóÒ»Ò³£¬ÄÇÃ´ÏÂÒ»Ò³¾ÍÊÇµÚÒ»Ò³
+        //é¡µæ•°åŠ ä¸€ï¼Œå¦‚æœå·²ç»åˆ°äº†æœ€åä¸€é¡µï¼Œé‚£ä¹ˆä¸‹ä¸€é¡µå°±æ˜¯ç¬¬ä¸€é¡µ
         for(i =0;i<num_read_page;i++){
 					num+=File_Pages[i];
 				}
@@ -400,12 +400,12 @@ static void Command_Select_NextPage(void *btn) {
 		ILI9341_DispString_EN_CH_Custom(0, 0, LCD_X_LENGTH,
                                         LCD_Y_LENGTH - FUNCTION_BLOCK_HEIGHT,
                                         (char *)cur_page_read_buffer);
-		// Êä³öÄÚÈİµ½ÏÔÊ¾ÆÁ	
+		// è¾“å‡ºå†…å®¹åˆ°æ˜¾ç¤ºå±	
 		
 		button[0].draw_btn(&button[0]);
-        button[1].draw_btn(&button[1]); //»æÖÆÏÂÒ»Ò³°´¼ü 
-        button[2].draw_btn(&button[2]); //»æÖÆÉÏÒ»Ò³°´¼ü
-    } else { //ÎÄ¼şÍâ²¿
+        button[1].draw_btn(&button[1]); //ç»˜åˆ¶ä¸‹ä¸€é¡µæŒ‰é”® 
+        button[2].draw_btn(&button[2]); //ç»˜åˆ¶ä¸Šä¸€é¡µæŒ‰é”®
+    } else { //æ–‡ä»¶å¤–éƒ¨
         if (++file_num_read_page >= FILE_MAX_NUM_PAGE) {
             file_num_read_page--;
             return;
@@ -416,19 +416,19 @@ static void Command_Select_NextPage(void *btn) {
 }
 
 /**
-* @brief  Command_Select_PrePage   Ñ¡ÖĞÉÏÒ»Ò³¹¦ÄÜ¼ü
-* @param   ÎŞ
-* @retval ÎŞ
+* @brief  Command_Select_PrePage   é€‰ä¸­ä¸Šä¸€é¡µåŠŸèƒ½é”®
+* @param   æ— 
+* @retval æ— 
 */
 
 static void Command_Select_PrePage(void *btn) { 
      uint16_t num=0,i;
-     if (cur_env == 1) { //ÎÄ¼şÄÚ²¿
+     if (cur_env == 1) { //æ–‡ä»¶å†…éƒ¨
          
          LCD_SetBackColor(CL_WHITE);
          LCD_SetTextColor(BLACK);
          ILI9341_Clear (0,0, LCD_X_LENGTH, LCD_Y_LENGTH); 
-         // ÇåÆÁ
+         // æ¸…å±
          
           if (num_read_page > 0 ) {
             num_read_page = num_read_page - 1;
@@ -437,22 +437,22 @@ static void Command_Select_PrePage(void *btn) {
 					num+=File_Pages[i];
 				}
          
-         //Ò³Êı¼õÒ»
+         //é¡µæ•°å‡ä¸€
         memset(cur_page_read_buffer,'\0',sizeof(cur_page_read_buffer));
          strncpy((char*)cur_page_read_buffer, 
                  (char*)file_read_buffer +num, 
                  File_Pages[num_read_page]);
-		 // ½ØÈ¡ĞèÒªÏÔÊ¾Ò³µÄÊı¾İ
+		 // æˆªå–éœ€è¦æ˜¾ç¤ºé¡µçš„æ•°æ®
                 
 		 ILI9341_DispString_EN_CH_Custom(0, 0, LCD_X_LENGTH,
                                          LCD_Y_LENGTH - FUNCTION_BLOCK_HEIGHT,
                                          (char *)cur_page_read_buffer);
-		 // Êä³öÄÚÈİµ½ÏÔÊ¾ÆÁ	
+		 // è¾“å‡ºå†…å®¹åˆ°æ˜¾ç¤ºå±	
 		
 		 button[0].draw_btn(&button[0]);
-         button[1].draw_btn(&button[1]); //»æÖÆÏÂÒ»Ò³°´¼ü    
-         button[2].draw_btn(&button[2]); //»æÖÆÉÏÒ»Ò³°´¼ü 
-     } else { //ÎÄ¼şÍâ²¿
+         button[1].draw_btn(&button[1]); //ç»˜åˆ¶ä¸‹ä¸€é¡µæŒ‰é”®    
+         button[2].draw_btn(&button[2]); //ç»˜åˆ¶ä¸Šä¸€é¡µæŒ‰é”® 
+     } else { //æ–‡ä»¶å¤–éƒ¨
         if (--file_num_read_page < 0) {
             file_num_read_page++;
             return;
@@ -463,36 +463,36 @@ static void Command_Select_PrePage(void *btn) {
 }
 
 /**
-* @brief  Touch_Button_Down °´¼ü±»°´ÏÂÊ±µ÷ÓÃµÄº¯Êı£¬ÓÉ´¥ÃşÆÁµ÷ÓÃ
-* @param  x ´¥ÃşÎ»ÖÃµÄx×ø±ê
-* @param  y ´¥ÃşÎ»ÖÃµÄy×ø±ê
-* @retval ÎŞ
+* @brief  Touch_Button_Down æŒ‰é”®è¢«æŒ‰ä¸‹æ—¶è°ƒç”¨çš„å‡½æ•°ï¼Œç”±è§¦æ‘¸å±è°ƒç”¨
+* @param  x è§¦æ‘¸ä½ç½®çš„xåæ ‡
+* @param  y è§¦æ‘¸ä½ç½®çš„yåæ ‡
+* @retval æ— 
 */
 void Touch_Button_Down(uint16_t x,uint16_t y)
 {
   uint8_t i;
   for(i=0;i<file_num+FUNCTION_BUTTON_NUM;i++)
   {  
-	if(button[i].en==0)  //°´¼üÊÇ·ñÊ¹ÄÜ
+	if(button[i].en==0)  //æŒ‰é”®æ˜¯å¦ä½¿èƒ½
 			continue;
-    /* ´¥Ãşµ½ÁË°´Å¥ */
+    /* è§¦æ‘¸åˆ°äº†æŒ‰é’® */
     if(x<=button[i].end_x && y<=button[i].end_y && y>=button[i].start_y && x>=button[i].start_x)
     {
-      if(button[i].touch_flag == 0)     /*Ô­±¾µÄ×´Ì¬ÎªÃ»ÓĞ°´ÏÂ£¬Ôò¸üĞÂ×´Ì¬*/
+      if(button[i].touch_flag == 0)     /*åŸæœ¬çš„çŠ¶æ€ä¸ºæ²¡æœ‰æŒ‰ä¸‹ï¼Œåˆ™æ›´æ–°çŠ¶æ€*/
       {
-      button[i].touch_flag = 1;         /* ¼ÇÂ¼°´ÏÂ±êÖ¾ */
+      button[i].touch_flag = 1;         /* è®°å½•æŒ‰ä¸‹æ ‡å¿— */
       
-      button[i].draw_btn(&button[i]);  /*ÖØ»æ°´Å¥*/
+      button[i].draw_btn(&button[i]);  /*é‡ç»˜æŒ‰é’®*/
       }        
       
     }
-    else if(button[i].touch_flag == 1) /* ´¥ÃşÒÆ³öÁË°´¼üµÄ·¶Î§ÇÒÖ®Ç°ÓĞ°´ÏÂ°´Å¥ */
+    else if(button[i].touch_flag == 1) /* è§¦æ‘¸ç§»å‡ºäº†æŒ‰é”®çš„èŒƒå›´ä¸”ä¹‹å‰æœ‰æŒ‰ä¸‹æŒ‰é’® */
     {
-      button[i].touch_flag = 0;         /* Çå³ı°´ÏÂ±êÖ¾£¬ÅĞ¶ÏÎªÎó²Ù×÷*/
+      button[i].touch_flag = 0;         /* æ¸…é™¤æŒ‰ä¸‹æ ‡å¿—ï¼Œåˆ¤æ–­ä¸ºè¯¯æ“ä½œ*/
       
-      button[i].draw_btn(&button[i]);   /*ÖØ»æ°´Å¥*/
+      button[i].draw_btn(&button[i]);   /*é‡ç»˜æŒ‰é’®*/
 			
-	  Cur_File.CurrentFileName=NULL;  //µ±Ç°Î´Ñ¡ÖĞÎÄ¼ş
+	  Cur_File.CurrentFileName=NULL;  //å½“å‰æœªé€‰ä¸­æ–‡ä»¶
 			
     }
 
@@ -501,28 +501,28 @@ void Touch_Button_Down(uint16_t x,uint16_t y)
 }
 
 /**
-* @brief  Touch_Button_Up °´¼ü±»ÊÍ·ÅÊ±µ÷ÓÃµÄº¯Êı£¬ÓÉ´¥ÃşÆÁµ÷ÓÃ
-* @param  x ´¥Ãş×îºóÊÍ·ÅÊ±µÄx×ø±ê
-* @param  y ´¥Ãş×îºóÊÍ·ÅÊ±µÄy×ø±ê
-* @retval ÎŞ
+* @brief  Touch_Button_Up æŒ‰é”®è¢«é‡Šæ”¾æ—¶è°ƒç”¨çš„å‡½æ•°ï¼Œç”±è§¦æ‘¸å±è°ƒç”¨
+* @param  x è§¦æ‘¸æœ€åé‡Šæ”¾æ—¶çš„xåæ ‡
+* @param  y è§¦æ‘¸æœ€åé‡Šæ”¾æ—¶çš„yåæ ‡
+* @retval æ— 
 */
 void Touch_Button_Up(uint16_t x,uint16_t y)
 {
    uint8_t i; 
    for(i=0;i<file_num+FUNCTION_BUTTON_NUM;i++)
    {
-	  if(button[i].en==0)   //°´¼üÊÇ·ñÊ¹ÄÜ
+	  if(button[i].en==0)   //æŒ‰é”®æ˜¯å¦ä½¿èƒ½
 			 continue;
-     /* ´¥±ÊÔÚ°´Å¥ÇøÓòÊÍ·Å */
+     /* è§¦ç¬”åœ¨æŒ‰é’®åŒºåŸŸé‡Šæ”¾ */
       if((x<button[i].end_x && x>button[i].start_x && y<button[i].end_y && y>button[i].start_y))
       {        
 			if(i==0 || i == 1 || i == 2) {
-              button[i].touch_flag = 0;       /*ÊÍ·Å´¥Ãş±êÖ¾*/
+              button[i].touch_flag = 0;       /*é‡Šæ”¾è§¦æ‘¸æ ‡å¿—*/
         
-              button[i].draw_btn(&button[i]); /*ÖØ»æ°´Å¥*/        
+              button[i].draw_btn(&button[i]); /*é‡ç»˜æŒ‰é’®*/        
 			}
       
-        button[i].btn_command(&button[i]);  /*Ö´ĞĞ°´¼üµÄ¹¦ÄÜÃüÁî*/
+        button[i].btn_command(&button[i]);  /*æ‰§è¡ŒæŒ‰é”®çš„åŠŸèƒ½å‘½ä»¤*/
         
         break;
       }
@@ -532,14 +532,14 @@ void Touch_Button_Up(uint16_t x,uint16_t y)
 
 
 /**
-* @brief  find_sd_file Îª²éÕÒsd¿¨ËùÓĞÎÄ¼ş
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  find_sd_file ä¸ºæŸ¥æ‰¾sdå¡æ‰€æœ‰æ–‡ä»¶
+* @param  æ— 
+* @retval æ— 
 */
 void find_sd_file(char *path){
-	char lf[FILE_NAME_LENGTH];  //³¤ÎÄ¼şÃûÊı×é
-	memset(IS_DIR,0,sizeof(IS_DIR));//³õÊ¼»¯ÊÇ·ñÊÇÄ¿Â¼±í
-    File_Name_Init();  //³õÊ¼»¯ÎÄ¼şÃû±í
+	char lf[FILE_NAME_LENGTH];  //é•¿æ–‡ä»¶åæ•°ç»„
+	memset(IS_DIR,0,sizeof(IS_DIR));//åˆå§‹åŒ–æ˜¯å¦æ˜¯ç›®å½•è¡¨
+    File_Name_Init();  //åˆå§‹åŒ–æ–‡ä»¶åè¡¨
 	res=f_opendir(&dir,path);
 	file_num=0;	  
 	if(res==FR_NO_PATH){
@@ -555,31 +555,31 @@ void find_sd_file(char *path){
 			fno.lfname=lf;
 			fno.lfsize=sizeof(lf);
 			res=f_readdir(&dir,&fno);
-			if(res!=FR_OK || !fno.fname[0]){  //Ä¿Â¼¶ÁÍêÁË
+			if(res!=FR_OK || !fno.fname[0]){  //ç›®å½•è¯»å®Œäº†
 				break;
 			}
-			else if(fno.fattrib & AM_HID){  //Òş²ØÎÄ¼ş
+			else if(fno.fattrib & AM_HID){  //éšè—æ–‡ä»¶
 				
 			}
-			else if(fno.fattrib & AM_DIR){  //ÎÄ¼ş¼Ğ
+			else if(fno.fattrib & AM_DIR){  //æ–‡ä»¶å¤¹
 				 //printf("dir name is %s\n",fno.fname);
 				 strcpy(File_Name[file_num],fno.fname);
                  IS_DIR[file_num]=1;
 				 file_num++;
 			}
-			else if (fno.fattrib & AM_SYS){  //ÏµÍ³ÎÄ¼ş
+			else if (fno.fattrib & AM_SYS){  //ç³»ç»Ÿæ–‡ä»¶
 				
 			}
-			else{  //ÆäËûÎÄ¼ş£¬°üÀ¨Ö»¶Á£¬´æ´¢
+			else{  //å…¶ä»–æ–‡ä»¶ï¼ŒåŒ…æ‹¬åªè¯»ï¼Œå­˜å‚¨
 				
-				if(!fno.lfname[0]){   //¶ÌÎÄ¼şÃû
+				if(!fno.lfname[0]){   //çŸ­æ–‡ä»¶å
 					if(fno.fname[0]){
 						//printf("file name is %s\n",fno.fname);
 						strcpy(File_Name[file_num],fno.fname);
 				    file_num++;
 					}
 				}
-				else{  //³¤ÎÄ¼şÃû
+				else{  //é•¿æ–‡ä»¶å
 					  //printf("file name is %s\n",fno.lfname);
 						strcpy(File_Name[file_num],fno.lfname);
 				    file_num++;
@@ -594,9 +594,9 @@ void find_sd_file(char *path){
 
 
 /**
-* @brief   ³õÊ¼»¯Êı×é
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief   åˆå§‹åŒ–æ•°ç»„
+* @param  æ— 
+* @retval æ— 
 */
 void File_Name_Init(void){
 	uint16_t i;
@@ -607,12 +607,12 @@ void File_Name_Init(void){
 
 
 /**
-* @brief  ¼ì²â°´¼ü×´Ì¬£¬²¢Ö´ĞĞÏàÓ¦¹¦ÄÜ
-* @param  Â·¾¶
-* @retval ÎŞ
+* @brief  æ£€æµ‹æŒ‰é”®çŠ¶æ€ï¼Œå¹¶æ‰§è¡Œç›¸åº”åŠŸèƒ½
+* @param  è·¯å¾„
+* @retval æ— 
 */
 void  KeyTrace(void){
-	//key1°´ÏÂ´«ÊäÎÄ¼ş¿ªÊ¼
+	//key1æŒ‰ä¸‹ä¼ è¾“æ–‡ä»¶å¼€å§‹
 	if( Key_Scan(KEY1_GPIO_PORT,KEY1_GPIO_PIN) == KEY_ON )  
 		{
 			LED1_ON;  
@@ -620,7 +620,7 @@ void  KeyTrace(void){
 			LED1_OFF;
 		} 
 		
-   //key2°´ÏÂ´ò¿ªÎÄ¼ş»òÄ¿Â¼
+   //key2æŒ‰ä¸‹æ‰“å¼€æ–‡ä»¶æˆ–ç›®å½•
 		if( Key_Scan(KEY2_GPIO_PORT,KEY2_GPIO_PIN) == KEY_ON  )
 		{
 			LED2_ON;
@@ -630,20 +630,20 @@ void  KeyTrace(void){
 }
 
 /**
-* @brief  ÔÚÏÔÊ¾ÆÁÉÏÏÔÊ¾ÎÄ¼şÄÚÈİ
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  åœ¨æ˜¾ç¤ºå±ä¸Šæ˜¾ç¤ºæ–‡ä»¶å†…å®¹
+* @param  æ— 
+* @retval æ— 
 */
 static void Open_File(char *path){
 	
 	char file_path[256];
-	if(Cur_File.CurrentFileName==NULL){   //Ã»ÓĞÑ¡ÔñÎÄ¼ş
+	if(Cur_File.CurrentFileName==NULL){   //æ²¡æœ‰é€‰æ‹©æ–‡ä»¶
 		return;
 	}
 	LCD_SetBackColor(CL_WHITE);
 	ILI9341_Clear (0,0, LCD_X_LENGTH, LCD_Y_LENGTH);
 	
-	//¸üĞÂÂ·¾¶Îªxx/xx/../µ±Ç°ÎÄ¼şÃû
+	//æ›´æ–°è·¯å¾„ä¸ºxx/xx/../å½“å‰æ–‡ä»¶å
 	memset(file_path,'\0',sizeof(file_path));
 	strcat(file_path,path);
 	strcat(file_path,"/");
@@ -652,7 +652,7 @@ static void Open_File(char *path){
 	memset(CurPath,'\0',sizeof(CurPath));
 	strcpy(CurPath,file_path);
 	NestDepth++;
-	if(Cur_File.is_dir==0) {  //Ñ¡ÖĞµÄÊÇÎÄ¼ş
+	if(Cur_File.is_dir==0) {  //é€‰ä¸­çš„æ˜¯æ–‡ä»¶
 		memset(file_read_buffer,'\0',sizeof(file_read_buffer));
 		File_Button_Disable();
 	    Fuction_Button_Enable();
@@ -661,7 +661,7 @@ static void Open_File(char *path){
 			res=f_read(&fil,file_read_buffer,sizeof(file_read_buffer),&fnumber);
 			
       File_Page_Init();
-            //½«¶ÁÈ¡µ½µÄÎÄ¼şÄÚÈİµÄÇ°FILE_PAGE_MAX_BTYE¸ö×Ö½Ú¸´ÖÆ¸øµ±Ç°Ò³Ãæ»º´æ×Ö·û´®
+            //å°†è¯»å–åˆ°çš„æ–‡ä»¶å†…å®¹çš„å‰FILE_PAGE_MAX_BTYEä¸ªå­—èŠ‚å¤åˆ¶ç»™å½“å‰é¡µé¢ç¼“å­˜å­—ç¬¦ä¸²
 			memset(cur_page_read_buffer,'\0',sizeof(cur_page_read_buffer));
       strncpy((char*)cur_page_read_buffer, 
                     (char*)file_read_buffer , File_Pages[0]
@@ -675,11 +675,11 @@ static void Open_File(char *path){
 		}
 		f_close(&fil);
 		button[0].draw_btn(&button[0]);
-        button[1].draw_btn(&button[1]); //»æÖÆÏÂÒ»Ò³°´¼ü
-        button[2].draw_btn(&button[2]); //»æÖÆÉÏÒ»Ò³°´¼ü
+        button[1].draw_btn(&button[1]); //ç»˜åˆ¶ä¸‹ä¸€é¡µæŒ‰é”®
+        button[2].draw_btn(&button[2]); //ç»˜åˆ¶ä¸Šä¸€é¡µæŒ‰é”®
 		cur_env=1;
 	}
-	else{   //Ñ¡ÖĞµÄÊÇÎÄ¼ş¼Ğ
+	else{   //é€‰ä¸­çš„æ˜¯æ–‡ä»¶å¤¹
 		 Fuction_Button_Enable();
 		 Button_Fresh(file_path);
 	}
@@ -687,9 +687,9 @@ static void Open_File(char *path){
 }
 
 /**
-  * @brief  USARTx ½ÓÊÜÎÄ¼ş£¬Ê¶±ğÎÄ¼ş²¢±£´æÔÚsd¿¨
-  * @param  ÎŞ
-  * @retval ÎŞ
+  * @brief  USARTx æ¥å—æ–‡ä»¶ï¼Œè¯†åˆ«æ–‡ä»¶å¹¶ä¿å­˜åœ¨sdå¡
+  * @param  æ— 
+  * @retval æ— 
   */
 
 void  USARTx_ReceiveFile(void){
@@ -699,18 +699,18 @@ void  USARTx_ReceiveFile(void){
 	 
 	memset((char *)temp_data,'\0',sizeof(temp_data));
 	strncpy((char *)temp_data,(char *)ReceiveBuff,strlen("txt_data_sta"));
-	if(strcmp("txt_data_sta",temp_data)==0){   //Ê¶±ğµ½ÊÇÎÄ¼ş´«Êä¿ªÊ¼
+	if(strcmp("txt_data_sta",temp_data)==0){   //è¯†åˆ«åˆ°æ˜¯æ–‡ä»¶ä¼ è¾“å¼€å§‹
 		LED1_ON;
 		//printf("detect file\n");
 		write_flag=1;
 		memset((char *)File_Receive_Name,'\0',sizeof(File_Receive_Name));
 		
-		if(cur_env==1){  //µ±Ç°Î»ÓÚÎÄ¼şÄÚ²¿
+		if(cur_env==1){  //å½“å‰ä½äºæ–‡ä»¶å†…éƒ¨
 			index=Last_Slash(CurPath);
 			strncpy(File_Receive_Name,CurPath,index);
 			NestDepth--;
 		}
-		else{  //µ±Ç°ÔÚÎÄ¼ş¼ĞÄÚ²¿
+		else{  //å½“å‰åœ¨æ–‡ä»¶å¤¹å†…éƒ¨
 			strcpy(File_Receive_Name,CurPath);
 		}
 		memset(CurPath,'\0',sizeof(CurPath));
@@ -725,13 +725,13 @@ void  USARTx_ReceiveFile(void){
 		}
     f_close(&fil);
 	}
-	else if(strcmp("txt_data_end",temp_data)==0&&write_flag==1){ //Ê¶±ğµ½ÊÇÎÄ¼ş´«Êä½áÊø
+	else if(strcmp("txt_data_end",temp_data)==0&&write_flag==1){ //è¯†åˆ«åˆ°æ˜¯æ–‡ä»¶ä¼ è¾“ç»“æŸ
 		write_flag=0;
 		Button_Fresh(CurPath);
 		LED1_OFF;
 		
 	}
-	else if(write_flag==1){  //Ê¶±ğµ½ÊÇÎÄ¼şÄÚÈİ
+	else if(write_flag==1){  //è¯†åˆ«åˆ°æ˜¯æ–‡ä»¶å†…å®¹
 		 
 		res=f_open(&fil,File_Receive_Name,FA_OPEN_EXISTING|FA_WRITE);
        
@@ -745,7 +745,7 @@ void  USARTx_ReceiveFile(void){
         
         
         
-		 f_lseek(&fil,f_size(&fil));  //½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½ÎÄ¼şÄ©Î²
+		 f_lseek(&fil,f_size(&fil));  //å°†æ–‡ä»¶æŒ‡é’ˆç§»åŠ¨åˆ°æ–‡ä»¶æœ«å°¾
 		res=f_write(&fil,ReceiveBuff,total_num,&fnumber);
 
 		f_close(&fil);
@@ -758,9 +758,9 @@ void  USARTx_ReceiveFile(void){
 }
  
 /**
-  * @brief  USARTx ½ÓÊÜÎÄ¼ş£¬Ê¶±ğÎÄ¼ş²¢±£´æÔÚsd¿¨
-  * @param  ÎŞ
-  * @retval ÎŞ
+  * @brief  USARTx æ¥å—æ–‡ä»¶ï¼Œè¯†åˆ«æ–‡ä»¶å¹¶ä¿å­˜åœ¨sdå¡
+  * @param  æ— 
+  * @retval æ— 
   */
 void  USARTx_SendFile(void){
 	char file_path[256];
@@ -772,10 +772,10 @@ void  USARTx_SendFile(void){
 	//printf("%s\n",SendBuff);
 	Usart_DMA_TX_Wait();
 	
-	//µÚ¶ş´Î·¢ËÍ£¬·¢ËÍÎÄ¼şÄÚÈİ
+	//ç¬¬äºŒæ¬¡å‘é€ï¼Œå‘é€æ–‡ä»¶å†…å®¹
 	memset(file_path,'\0',sizeof(file_path));
 	strcpy(file_path,CurPath);
-	if(cur_env==0){  //µ±Ç°²»ÔÚËùÑ¡ÎÄ¼şÄÚ²¿
+	if(cur_env==0){  //å½“å‰ä¸åœ¨æ‰€é€‰æ–‡ä»¶å†…éƒ¨
 		strcat(file_path,"/");
 		strcat(file_path,Cur_File.CurrentFileName);
 	}
@@ -785,14 +785,14 @@ void  USARTx_SendFile(void){
 		    memset((char *)SendBuff,'\0',sizeof(SendBuff));
 			res=f_read(&fil,(BYTE *)SendBuff,sizeof(SendBuff),&fnumber);
 			Usart_DMA_TX_Wait();
-			if(fnumber < sizeof(SendBuff)){  //ÎÄ¼ş¶ÁÈ¡½áÊø
+			if(fnumber < sizeof(SendBuff)){  //æ–‡ä»¶è¯»å–ç»“æŸ
 				break;
 			}
 		}
 	}
   f_close(&fil);
 	
-	//µÚÈı´Î·¢ËÍ£¬´ú±íÎÄ¼ş·¢ËÍ½áÊø
+	//ç¬¬ä¸‰æ¬¡å‘é€ï¼Œä»£è¡¨æ–‡ä»¶å‘é€ç»“æŸ
 	memset((char *)SendBuff,'\0',sizeof(SendBuff));
 	strcpy((char *)SendBuff,"txt_data_end");
 	Usart_DMA_TX_Wait(); 
@@ -801,9 +801,9 @@ void  USARTx_SendFile(void){
 
 
 /**
-* @brief  ÎÄ¼ş°´Å¥½ûÓÃ
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  æ–‡ä»¶æŒ‰é’®ç¦ç”¨
+* @param  æ— 
+* @retval æ— 
 */
 static void File_Button_Disable(void){
 	uint16_t i;
@@ -813,9 +813,9 @@ static void File_Button_Disable(void){
 }
 
 /**
-* @brief  ÎÄ¼ş°´Å¥Ê¹ÄÜ
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  æ–‡ä»¶æŒ‰é’®ä½¿èƒ½
+* @param  æ— 
+* @retval æ— 
 */
 //static void File_Button_Enable(void){
 //	uint16_t i;
@@ -825,14 +825,14 @@ static void File_Button_Disable(void){
 //}
 
 /**
-* @brief  ¹¦ÄÜ°´¼ü½ûÓÃ
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  åŠŸèƒ½æŒ‰é”®ç¦ç”¨
+* @param  æ— 
+* @retval æ— 
 */
 //static void Function_Button_Disable(void){
 //	uint16_t i;
 //	for(i=0;i<FUNCTION_BUTTON_NUM;i++){
-//        if (i == 1) { // 1ºÅ°´¼üÊÇÏÂÒ»Ò³£¬Ê¼ÖÕÊ¹ÄÜ
+//        if (i == 1) { // 1å·æŒ‰é”®æ˜¯ä¸‹ä¸€é¡µï¼Œå§‹ç»ˆä½¿èƒ½
 //            continue;
 //        }
 //		button[i].en=0;
@@ -840,9 +840,9 @@ static void File_Button_Disable(void){
 //}
 
 /**
-* @brief  ¹¦ÄÜ°´¼üÊ¹ÄÜ
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  åŠŸèƒ½æŒ‰é”®ä½¿èƒ½
+* @param  æ— 
+* @retval æ— 
 */
 static void Fuction_Button_Enable(void){
 	uint16_t i;
@@ -853,9 +853,9 @@ static void Fuction_Button_Enable(void){
 
 
 /**
-* @brief  ×îºóÒ»¸ö/µÄÎ»ÖÃ
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  æœ€åä¸€ä¸ª/çš„ä½ç½®
+* @param  æ— 
+* @retval æ— 
 */
 static uint16_t  Last_Slash(char *path){
 	uint16_t i;
@@ -882,9 +882,9 @@ static void File_Disable(void) {
 }
 
 /**
-* @brief  ³õÊ¼»¯ÎÄ¼şÄÚÈİÃ¿Ò»Ò³µÄÒ³ÊıÊıÁ¿
-* @param  ÎŞ
-* @retval ÎŞ
+* @brief  åˆå§‹åŒ–æ–‡ä»¶å†…å®¹æ¯ä¸€é¡µçš„é¡µæ•°æ•°é‡
+* @param  æ— 
+* @retval æ— 
 */
 static void File_Page_Init(void){
 	uint16_t count=0,cur_page=0;
@@ -895,7 +895,7 @@ static void File_Page_Init(void){
 		 if(*pStr<=126){
 			 count++;
 			 pStr++;
-			 if(count==FILE_PAGE_MAX_BTYE-1){
+			 if(count==FILE_PAGE_MAX_BTYE-5){
 				 File_Pages[cur_page]=count;
 				 count=0;
 				 cur_page++;
@@ -907,7 +907,7 @@ static void File_Page_Init(void){
 		 else{
 			 count+=2;
 			 pStr+=2;
-			 if(count>=FILE_PAGE_MAX_BTYE-1){
+			 if(count>=FILE_PAGE_MAX_BTYE-5){
 				 File_Pages[cur_page]=count;
 				 count=0;
 				 cur_page++;
